@@ -13,15 +13,15 @@ export class UsersService {
     throw new Error('Method not implemented.');
   }
 
-  findOne(id: string): User {
+  findOne(id: number): User {
     throw new Error('Method not implemented.');
   }
 
-  update(id: string, updateUserDto: UpdateUserDto): User {
+  update(id: number, updateUserDto: UpdateUserDto): User {
     throw new Error('Method not implemented.');
   }
 
-  remove(id: string) {
+  remove(id: number) {
     throw new Error('Method not implemented.');
   }
 }
