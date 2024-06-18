@@ -25,7 +25,8 @@ export class PointController {
   @Get(':id')
   async point(@Param('id') id): Promise<UserPoint> {
     const userId = Number.parseInt(id);
-    return { id: userId, point: 0, updateMillis: Date.now() };
+
+    return await this.userDb.selectById(userId);
   }
 
   /**
@@ -34,7 +35,8 @@ export class PointController {
   @Get(':id/histories')
   async history(@Param('id') id): Promise<PointHistory[]> {
     const userId = Number.parseInt(id);
-    return [];
+
+    return await this.historyDb.selectAllByUserId(userId);
   }
 
   /**
@@ -48,7 +50,18 @@ export class PointController {
     const userId = Number.parseInt(id);
     const amount = pointDto.amount;
     this.amountValidator(amount);
-    return { id: userId, point: amount, updateMillis: Date.now() };
+
+    const user = await this.userDb.selectById(userId);
+
+    await this.historyDb.insert(
+      userId,
+      amount,
+      TransactionType.CHARGE,
+      Date.now(),
+    );
+
+    user.point += amount;
+    return await this.userDb.insertOrUpdate(userId, user.point);
   }
 
   /**
@@ -62,7 +75,23 @@ export class PointController {
     const userId = Number.parseInt(id);
     const amount = pointDto.amount;
     this.amountValidator(amount);
-    return { id: userId, point: amount, updateMillis: Date.now() };
+
+    const user = await this.userDb.selectById(userId);
+
+    if (user.point < amount) {
+      throw new BadRequestException('');
+    }
+
+    await this.historyDb.insert(
+      userId,
+      amount,
+      TransactionType.CHARGE,
+      Date.now(),
+    );
+
+    user.point -= amount;
+
+    return await this.userDb.insertOrUpdate(userId, user.point);
   }
 
   private amountValidator(amount: number) {

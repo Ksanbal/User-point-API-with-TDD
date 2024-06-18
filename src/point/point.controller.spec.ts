@@ -90,15 +90,19 @@ describe('PointController', () => {
   // 포인트 사용
   describe('특정 유저의 포인트를 사용하는 기능', () => {
     // 성공 케이스
-    it('성공 케이스', () => {
+    it('성공 케이스', async () => {
       const userId = 1;
       const dto = {
         amount: 100,
       };
 
-      expect(pointController.charge(userId, dto)).resolves.toEqual({
+      // 포인트 사용을 위해 포인트 적립 적용
+      await pointController.charge(userId, {
+        amount: 200,
+      });
+      expect(pointController.use(userId, dto)).resolves.toEqual({
         id: userId,
-        point: dto.amount,
+        point: 100,
         updateMillis: expect.any(Number),
       });
     });
@@ -106,6 +110,7 @@ describe('PointController', () => {
     /**
      * request에 대한 validation
      * 1. 포인트의 값이 양의 정수가 아닌 경우에 대한 Error 반환 테스트
+     * 2. 현재 충전된 포인트보다 높은 값의 포인트를 사용하는 경우
      */
     it('포인트가 음수인 경우', () => {
       const userId = 1;
@@ -119,6 +124,17 @@ describe('PointController', () => {
     });
 
     it('포인트가 0인 경우', () => {
+      const userId = 1;
+      const dto = {
+        amount: 0,
+      };
+
+      expect(pointController.use(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('포인트가 현재 포인트보다 높은 경우', () => {
       const userId = 1;
       const dto = {
         amount: 0,
