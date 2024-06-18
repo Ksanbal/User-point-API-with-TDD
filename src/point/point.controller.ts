@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -46,6 +47,7 @@ export class PointController {
   ): Promise<UserPoint> {
     const userId = Number.parseInt(id);
     const amount = pointDto.amount;
+    this.amountValidator(amount);
     return { id: userId, point: amount, updateMillis: Date.now() };
   }
 
@@ -59,6 +61,13 @@ export class PointController {
   ): Promise<UserPoint> {
     const userId = Number.parseInt(id);
     const amount = pointDto.amount;
+    this.amountValidator(amount);
     return { id: userId, point: amount, updateMillis: Date.now() };
+  }
+
+  private amountValidator(amount: number) {
+    if (Number.isInteger(amount) && 0 < amount) return;
+
+    throw new BadRequestException('올바르지 않은 입력값입니다.');
   }
 }

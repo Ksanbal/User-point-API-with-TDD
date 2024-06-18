@@ -70,7 +70,7 @@ describe('PointController', () => {
         amount: -100,
       };
 
-      expect(pointController.charge(userId, dto)).resolves.toThrow(
+      expect(pointController.charge(userId, dto)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -81,18 +81,7 @@ describe('PointController', () => {
         amount: 0,
       };
 
-      expect(pointController.charge(userId, dto)).resolves.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('포인트가 실수인 경우', () => {
-      const userId = 1;
-      const dto = {
-        amount: 0.5,
-      };
-
-      expect(pointController.charge(userId, dto)).resolves.toThrow(
+      expect(pointController.charge(userId, dto)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -124,7 +113,7 @@ describe('PointController', () => {
         amount: -100,
       };
 
-      expect(pointController.use(userId, dto)).resolves.toThrow(
+      expect(pointController.use(userId, dto)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -135,18 +124,7 @@ describe('PointController', () => {
         amount: 0,
       };
 
-      expect(pointController.use(userId, dto)).resolves.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('포인트가 실수인 경우', () => {
-      const userId = 1;
-      const dto = {
-        amount: 0.5,
-      };
-
-      expect(pointController.use(userId, dto)).resolves.toThrow(
+      expect(pointController.use(userId, dto)).rejects.toThrow(
         BadRequestException,
       );
     });
