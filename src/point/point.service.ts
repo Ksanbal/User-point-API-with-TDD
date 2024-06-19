@@ -37,7 +37,7 @@ export class PointService {
    */
   async charge(id: number, pointDto: PointDto): Promise<UserPoint> {
     const amount = pointDto.amount;
-    this.amountValidator(amount);
+    this.validateAmount(amount);
 
     const user = await this.userPointRepository.getOne(id);
 
@@ -56,7 +56,7 @@ export class PointService {
    */
   async use(id: number, pointDto: PointDto): Promise<UserPoint> {
     const amount = pointDto.amount;
-    this.amountValidator(amount);
+    this.validateAmount(amount);
 
     const user = await this.userPointRepository.getOne(id);
 
@@ -74,7 +74,7 @@ export class PointService {
    * amount가 유효한 값인지 확인하는 함수
    * @param amount
    */
-  private amountValidator(amount: number): void {
+  private validateAmount(amount: number): void {
     if (Number.isInteger(amount) && 0 < amount) return;
 
     throw new BadRequestException('올바르지 않은 입력값입니다.');
