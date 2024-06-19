@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PointService } from './point.service';
 import { DatabaseModule } from '../database/database.module';
-import { PointHistory, TransactionType } from './point.model';
+import { PointHistory, TransactionType, UserPoint } from './point.model';
 import { BadRequestException } from '@nestjs/common';
 import { UserPointRepository } from './repository/user-point.repository';
 import { PointHistoryRepository } from './repository/point-history.repository';
@@ -9,10 +9,69 @@ import { PointHistoryRepository } from './repository/point-history.repository';
 describe('PointService', () => {
   let service: PointService;
 
+  // Mocking UserPointRepository
+  const mockUserPointTable: Map<number, UserPoint> = new Map();
+  const mockUserPointRepository = {
+    getOne: jest.fn((id) =>
+      Promise.resolve(
+        mockUserPointTable.get(id) ?? {
+          id,
+          point: 0,
+          updateMillis: Date.now(),
+        },
+      ),
+    ),
+    upsert: jest.fn((id, amount) => {
+      const userPoint = {
+        id: id,
+        point: amount,
+        updateMillis: Date.now(),
+      };
+      mockUserPointTable.set(id, userPoint);
+      return Promise.resolve(userPoint);
+    }),
+  };
+
+  // Mocking PointHistoryRepository
+  const mockPointHistoryTable: PointHistory[] = [];
+  const mockPointHistoryRepository = {
+    insert: jest.fn(
+      (
+        userId: number,
+        amount: number,
+        transactionType: TransactionType,
+        updateMillis: number,
+      ) => {
+        const data = {
+          id: Date.now(),
+          userId: userId,
+          amount: amount,
+          type: transactionType,
+          timeMillis: updateMillis,
+        };
+        mockPointHistoryTable.push(data);
+        return Promise.resolve(data);
+      },
+    ),
+    getMany: jest.fn((id) =>
+      Promise.resolve(mockPointHistoryTable.filter((v) => v.userId == id)),
+    ),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [DatabaseModule],
-      providers: [PointService, UserPointRepository, PointHistoryRepository],
+      providers: [
+        PointService,
+        {
+          provide: UserPointRepository,
+          useValue: mockUserPointRepository,
+        },
+        {
+          provide: PointHistoryRepository,
+          useValue: mockPointHistoryRepository,
+        },
+      ],
     }).compile();
 
     service = module.get<PointService>(PointService);
