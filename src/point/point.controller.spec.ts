@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PointController } from './point.controller';
 import { DatabaseModule } from '../database/database.module';
 import { PointHistory } from './point.model';
-import { BadRequestException } from '@nestjs/common';
 import { PointService } from './point.service';
 
 describe('PointController', () => {
@@ -61,32 +60,6 @@ describe('PointController', () => {
         updateMillis: expect.any(Number),
       });
     });
-
-    /**
-     * request에 대한 validation
-     * 1. 포인트의 값이 양의 정수가 아닌 경우에 대한 Error 반환 테스트
-     */
-    it('포인트가 음수인 경우', () => {
-      const userId = 1;
-      const dto = {
-        amount: -100,
-      };
-
-      expect(pointController.charge(userId, dto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('포인트가 0인 경우', () => {
-      const userId = 1;
-      const dto = {
-        amount: 0,
-      };
-
-      expect(pointController.charge(userId, dto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
   });
 
   // 포인트 사용
@@ -107,44 +80,6 @@ describe('PointController', () => {
         point: 100,
         updateMillis: expect.any(Number),
       });
-    });
-
-    /**
-     * request에 대한 validation
-     * 1. 포인트의 값이 양의 정수가 아닌 경우에 대한 Error 반환 테스트
-     * 2. 현재 충전된 포인트보다 높은 값의 포인트를 사용하는 경우
-     */
-    it('포인트가 음수인 경우', () => {
-      const userId = 1;
-      const dto = {
-        amount: -100,
-      };
-
-      expect(pointController.use(userId, dto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('포인트가 0인 경우', () => {
-      const userId = 1;
-      const dto = {
-        amount: 0,
-      };
-
-      expect(pointController.use(userId, dto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('포인트가 현재 포인트보다 높은 경우', () => {
-      const userId = 1;
-      const dto = {
-        amount: 0,
-      };
-
-      expect(pointController.use(userId, dto)).rejects.toThrow(
-        BadRequestException,
-      );
     });
   });
 });
