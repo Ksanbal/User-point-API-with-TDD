@@ -41,15 +41,11 @@ export class PointService {
 
     const user = await this.userPointRepository.getOne(id);
 
-    await this.pointHistoryRepository.insert(
-      id,
+    return await this.updatePointNInsertHistory(
+      user,
       amount,
       TransactionType.CHARGE,
-      Date.now(),
     );
-
-    user.point += amount;
-    return await this.userPointRepository.upsert(id, user.point);
   }
 
   /**
@@ -68,16 +64,11 @@ export class PointService {
       throw new BadRequestException('');
     }
 
-    await this.pointHistoryRepository.insert(
-      id,
+    return await this.updatePointNInsertHistory(
+      user,
       amount,
       TransactionType.USE,
-      Date.now(),
     );
-
-    user.point -= amount;
-
-    return await this.userPointRepository.upsert(id, user.point);
   }
 
   // ---------- Private ---------- //
@@ -89,5 +80,34 @@ export class PointService {
     if (Number.isInteger(amount) && 0 < amount) return;
 
     throw new BadRequestException('올바르지 않은 입력값입니다.');
+  }
+
+  /**
+   * 유저의 포인트 정보를 업데이트하고
+   * @param user UserPoint
+   * @param amount 충전/사용 하려는 포인트양
+   * @param transactionType 충전/사용 여부
+   * @returns Promise<UserPoint>
+   */
+  private async updatePointNInsertHistory(
+    user: UserPoint,
+    amount: number,
+    transactionType: TransactionType,
+  ) {
+    if (transactionType == TransactionType.CHARGE) {
+      user.point += amount;
+    } else {
+      user.point -= amount;
+    }
+    const result = await this.userPointRepository.upsert(user.id, user.point);
+
+    await this.pointHistoryRepository.insert(
+      user.id,
+      amount,
+      transactionType,
+      Date.now(),
+    );
+
+    return result;
   }
 }
