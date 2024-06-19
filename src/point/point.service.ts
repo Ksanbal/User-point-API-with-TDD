@@ -60,9 +60,7 @@ export class PointService {
 
     const user = await this.userPointRepository.getOne(id);
 
-    if (user.point < amount) {
-      throw new BadRequestException('');
-    }
+    this.validateUserPointStatus(user.point, amount);
 
     return await this.updatePointNInsertHistory(
       user,
@@ -80,6 +78,12 @@ export class PointService {
     if (Number.isInteger(amount) && 0 < amount) return;
 
     throw new BadRequestException('올바르지 않은 입력값입니다.');
+  }
+
+  private validateUserPointStatus(point: number, amount: number) {
+    if (point < amount) {
+      throw new BadRequestException('포인트가 부족합니다.');
+    }
   }
 
   /**
