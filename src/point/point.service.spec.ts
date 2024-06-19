@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PointService } from './point.service';
 import { DatabaseModule } from '../database/database.module';
-import { PointHistory } from './point.model';
+import { PointHistory, TransactionType } from './point.model';
 import { BadRequestException } from '@nestjs/common';
 
 describe('PointService', () => {
@@ -47,16 +47,22 @@ describe('PointService', () => {
   // 포인트 충전
   describe('특정 유저의 포인트를 충전하는 기능', () => {
     // 성공 케이스
-    it('성공 케이스', () => {
+    it('포인트를 충전하고 기록이 생성되는지 테스트', async () => {
       const userId = 1;
       const dto = {
         amount: 100,
       };
 
-      expect(service.charge(userId, dto)).resolves.toEqual({
-        id: userId,
-        point: dto.amount,
-        updateMillis: expect.any(Number),
+      await service.charge(userId, dto);
+      const history = await service.history(userId);
+      const lastHistory = history[history.length - 1];
+
+      expect(lastHistory).toEqual({
+        id: expect.any(Number),
+        userId: userId,
+        amount: dto.amount,
+        type: TransactionType.CHARGE,
+        timeMillis: expect.any(Number),
       });
     });
 
@@ -86,20 +92,23 @@ describe('PointService', () => {
   // 포인트 사용
   describe('특정 유저의 포인트를 사용하는 기능', () => {
     // 성공 케이스
-    it('성공 케이스', async () => {
+    it('포인트를 사용하고 기록이 생성되는지 테스트', async () => {
       const userId = 1;
       const dto = {
         amount: 100,
       };
 
-      // 포인트 사용을 위해 포인트 적립 적용
-      await service.charge(userId, {
-        amount: 200,
-      });
-      expect(service.use(userId, dto)).resolves.toEqual({
-        id: userId,
-        point: 100,
-        updateMillis: expect.any(Number),
+      await service.charge(userId, dto);
+      await service.use(userId, dto);
+      const history = await service.history(userId);
+      const lastHistory = history[history.length - 1];
+
+      expect(lastHistory).toEqual({
+        id: expect.any(Number),
+        userId: userId,
+        amount: dto.amount,
+        type: TransactionType.USE,
+        timeMillis: expect.any(Number),
       });
     });
 

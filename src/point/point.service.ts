@@ -63,7 +63,7 @@ export class PointService {
       throw new BadRequestException('');
     }
 
-    await this.historyDb.insert(id, amount, TransactionType.CHARGE, Date.now());
+    await this.historyDb.insert(id, amount, TransactionType.USE, Date.now());
 
     user.point -= amount;
 
