@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PointHistoryTable } from '../database/pointhistory.table';
-import { UserPointTable } from '../database/userpoint.table';
 import { PointHistory, TransactionType, UserPoint } from './point.model';
 import { PointBody as PointDto } from './point.dto';
+import { UserPointRepository } from './repository/user-point.repository';
+import { PointHistoryRepository } from './repository/point-history.repository';
 
 @Injectable()
 export class PointService {
   constructor(
-    private readonly userDb: UserPointTable,
-    private readonly historyDb: PointHistoryTable,
+    private readonly userPointRepository: UserPointRepository,
+    private readonly pointHistoryRepository: PointHistoryRepository,
   ) {}
 
   /**
@@ -17,7 +17,7 @@ export class PointService {
    * @returns Promise<UserPoint>
    */
   async point(id: number): Promise<UserPoint> {
-    return await this.userDb.selectById(id);
+    return await this.userPointRepository.getOne(id);
   }
 
   /**
@@ -26,7 +26,7 @@ export class PointService {
    * @returns Promise<PointHistory[]>
    */
   async history(id: number): Promise<PointHistory[]> {
-    return await this.historyDb.selectAllByUserId(id);
+    return await this.pointHistoryRepository.getMany(id);
   }
 
   /**
@@ -39,12 +39,17 @@ export class PointService {
     const amount = pointDto.amount;
     this.amountValidator(amount);
 
-    const user = await this.userDb.selectById(id);
+    const user = await this.userPointRepository.getOne(id);
 
-    await this.historyDb.insert(id, amount, TransactionType.CHARGE, Date.now());
+    await this.pointHistoryRepository.insert(
+      id,
+      amount,
+      TransactionType.CHARGE,
+      Date.now(),
+    );
 
     user.point += amount;
-    return await this.userDb.insertOrUpdate(id, user.point);
+    return await this.userPointRepository.upsert(id, user.point);
   }
 
   /**
@@ -57,17 +62,22 @@ export class PointService {
     const amount = pointDto.amount;
     this.amountValidator(amount);
 
-    const user = await this.userDb.selectById(id);
+    const user = await this.userPointRepository.getOne(id);
 
     if (user.point < amount) {
       throw new BadRequestException('');
     }
 
-    await this.historyDb.insert(id, amount, TransactionType.USE, Date.now());
+    await this.pointHistoryRepository.insert(
+      id,
+      amount,
+      TransactionType.USE,
+      Date.now(),
+    );
 
     user.point -= amount;
 
-    return await this.userDb.insertOrUpdate(id, user.point);
+    return await this.userPointRepository.upsert(id, user.point);
   }
 
   // ---------- Private ---------- //
