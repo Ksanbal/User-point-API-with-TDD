@@ -3,6 +3,7 @@ import { PointController } from './point.controller';
 import { DatabaseModule } from '../database/database.module';
 import { PointHistory } from './point.model';
 import { BadRequestException } from '@nestjs/common';
+import { PointService } from './point.service';
 
 describe('PointController', () => {
   let pointController: PointController;
@@ -11,6 +12,7 @@ describe('PointController', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [DatabaseModule],
       controllers: [PointController],
+      providers: [PointService],
     }).compile();
 
     pointController = module.get<PointController>(PointController);
