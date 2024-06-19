@@ -12,7 +12,7 @@ describe('PointService', () => {
   // Mocking UserPointRepository
   const mockUserPointTable: Map<number, UserPoint> = new Map();
   const mockUserPointRepository = {
-    getOne: jest.fn((id) =>
+    findOne: jest.fn((id) =>
       Promise.resolve(
         mockUserPointTable.get(id) ?? {
           id,
@@ -53,7 +53,7 @@ describe('PointService', () => {
         return Promise.resolve(data);
       },
     ),
-    getMany: jest.fn((id) =>
+    find: jest.fn((id) =>
       Promise.resolve(mockPointHistoryTable.filter((v) => v.userId == id)),
     ),
   };

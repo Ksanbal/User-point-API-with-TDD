@@ -17,7 +17,7 @@ export class PointService {
    * @returns Promise<UserPoint>
    */
   async point(id: number): Promise<UserPoint> {
-    return await this.userPointRepository.getOne(id);
+    return await this.userPointRepository.findOne(id);
   }
 
   /**
@@ -26,7 +26,7 @@ export class PointService {
    * @returns Promise<PointHistory[]>
    */
   async history(id: number): Promise<PointHistory[]> {
-    return await this.pointHistoryRepository.getMany(id);
+    return await this.pointHistoryRepository.find(id);
   }
 
   /**
@@ -39,7 +39,7 @@ export class PointService {
     const amount = pointDto.amount;
     this.validateAmount(amount);
 
-    const user = await this.userPointRepository.getOne(id);
+    const user = await this.userPointRepository.findOne(id);
 
     return await this.updatePointNInsertHistory(
       user,
@@ -58,7 +58,7 @@ export class PointService {
     const amount = pointDto.amount;
     this.validateAmount(amount);
 
-    const user = await this.userPointRepository.getOne(id);
+    const user = await this.userPointRepository.findOne(id);
 
     this.validateUserPointStatus(user.point, amount);
 

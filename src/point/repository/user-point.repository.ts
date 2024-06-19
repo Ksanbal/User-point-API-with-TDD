@@ -11,7 +11,7 @@ export class UserPointRepository {
    * @param id 유저 id
    * @returns Promise<UserPoint>
    */
-  async getOne(id: number): Promise<UserPoint> {
+  async findOne(id: number): Promise<UserPoint> {
     return this.userDb.selectById(id);
   }
 

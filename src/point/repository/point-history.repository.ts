@@ -25,7 +25,7 @@ export class PointHistoryRepository {
    * @param id 유저 id
    * @returns Promise<PointHistory[]>
    */
-  async getMany(id: number): Promise<PointHistory[]> {
+  async find(id: number): Promise<PointHistory[]> {
     return this.historyDb.selectAllByUserId(id);
   }
 }
