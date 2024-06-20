@@ -62,6 +62,34 @@ describe('PointController', () => {
         updateMillis: expect.any(Number),
       });
     });
+
+    /**
+     * 동시성 제어에 대한 테스트
+     * 1. 동시에 충전을 진행했을때 요청한 충전값이 모두 반영되는지 테스트
+     */
+    it('동시에 충전했을떄 성공적으로 처리되는 경우', async () => {
+      const userPoint = await pointController.point(1);
+
+      const requestDtos = [
+        {
+          amount: 100,
+        },
+        {
+          amount: 200,
+        },
+        {
+          amount: 300,
+        },
+      ];
+      const totalAmount =
+        userPoint.point + requestDtos.reduce((acc, cur) => acc + cur.amount, 0);
+
+      const promises = requestDtos.map((dto) => pointController.charge(1, dto));
+      await Promise.all(promises);
+
+      const currentUserPoint = await pointController.point(1);
+      expect(currentUserPoint.point).toEqual(totalAmount);
+    });
   });
 
   // 포인트 사용
@@ -82,6 +110,32 @@ describe('PointController', () => {
         point: 100,
         updateMillis: expect.any(Number),
       });
+    });
+
+    /**
+     * 동시성 제어에 대한 테스트
+     * 1. 두번의 요청이 동시에 들어왔을때 충전된 포인트보다 많은 포인트를 사용하려고 할때 2번째 요청은 실패해야한다.
+     */
+    it('동시에 사용했을때 이후의 요청이 거절되는 경우', async () => {
+      // 사용자의 포인트를 100으로 초기 설정
+      await pointController.charge(1, {
+        amount: 300,
+      });
+
+      const requestDtos = [
+        {
+          amount: 200,
+        },
+        {
+          amount: 200,
+        },
+      ];
+
+      const promises = requestDtos.map((dto) => pointController.use(1, dto));
+      await Promise.all(promises);
+
+      const currentUserPoint = await pointController.point(1);
+      expect(currentUserPoint.point).toEqual(100);
     });
   });
 });
