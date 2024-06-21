@@ -3,12 +3,14 @@ import { PointHistory, TransactionType, UserPoint } from './point.model';
 import { PointBody as PointDto } from './point.dto';
 import { UserPointRepository } from './repository/user-point.repository';
 import { PointHistoryRepository } from './repository/point-history.repository';
+import { QueueTable } from '../database/queue.table';
 
 @Injectable()
 export class PointService {
   constructor(
     private readonly userPointRepository: UserPointRepository,
     private readonly pointHistoryRepository: PointHistoryRepository,
+    private readonly queueDb: QueueTable,
   ) {}
 
   /**
@@ -39,13 +41,14 @@ export class PointService {
     const amount = pointDto.amount;
     this.validateAmount(amount);
 
-    const user = await this.userPointRepository.findOne(id);
-
-    return await this.updatePointNInsertHistory(
-      user,
+    const queueId = Date.now();
+    this.queueDb.push(id, {
+      queueId: Date.now(),
+      type: TransactionType.CHARGE,
       amount,
-      TransactionType.CHARGE,
-    );
+    });
+
+    return await this.waitUntilMyTurn(id, queueId);
   }
 
   /**
@@ -113,5 +116,25 @@ export class PointService {
     );
 
     return result;
+  }
+
+  // queue에서 내 명령이 수행되기를 기다리는 함수
+  private async waitUntilMyTurn(
+    userId: number,
+    queueId: number,
+  ): Promise<UserPoint> {
+    while (this.queueDb.get(userId)[0].queueId != queueId) {
+      console.log('wait!');
+    }
+
+    // 요청을 pop시킨다.
+    const request = this.queueDb.pop(userId);
+
+    const currentUserPoint = await this.userPointRepository.findOne(userId);
+    return await this.updatePointNInsertHistory(
+      currentUserPoint,
+      request.amount,
+      request.type,
+    );
   }
 }
