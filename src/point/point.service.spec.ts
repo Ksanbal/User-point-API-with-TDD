@@ -5,6 +5,7 @@ import { PointHistory, TransactionType, UserPoint } from './point.model';
 import { BadRequestException } from '@nestjs/common';
 import { UserPointRepository } from './repository/user-point.repository';
 import { PointHistoryRepository } from './repository/point-history.repository';
+import { QueueTable } from '../database/queue.table';
 
 describe('PointService', () => {
   let service: PointService;
@@ -71,6 +72,7 @@ describe('PointService', () => {
           provide: PointHistoryRepository,
           useValue: mockPointHistoryRepository,
         },
+        QueueTable,
       ],
     }).compile();
 

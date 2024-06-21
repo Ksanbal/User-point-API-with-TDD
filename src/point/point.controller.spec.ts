@@ -5,6 +5,7 @@ import { PointHistory } from './point.model';
 import { PointService } from './point.service';
 import { UserPointRepository } from './repository/user-point.repository';
 import { PointHistoryRepository } from './repository/point-history.repository';
+import { QueueTable } from '../database/queue.table';
 
 describe('PointController', () => {
   let pointController: PointController;
@@ -13,7 +14,12 @@ describe('PointController', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [DatabaseModule],
       controllers: [PointController],
-      providers: [PointService, UserPointRepository, PointHistoryRepository],
+      providers: [
+        PointService,
+        UserPointRepository,
+        PointHistoryRepository,
+        QueueTable,
+      ],
     }).compile();
 
     pointController = module.get<PointController>(PointController);
